@@ -6,6 +6,6 @@ class NotificationAppModel extends AppModel {
 
 	public $tablePrefix = "notification_";
 
-	public $recursive = 1;
+	public $recursive = 0;
 
 }

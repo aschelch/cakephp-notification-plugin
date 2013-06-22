@@ -4,7 +4,9 @@ App::uses('ReadableBehavior', 'Readable.Model/Behavior');
 
 class User extends CakeTestModel{
 
-	public $actsAs = array('Notification.Notifiable');
+	public $actsAs = array('Notification.Notifiable'=>array(
+		'subjects' => array('Post', 'User')
+	));
 
 	public $hasMany = array('Post');
 
@@ -52,34 +54,33 @@ class NotifiableBehaviorTest extends CakeTestCase{
 
 	public function testNotify(){
 
-		$notifications = $this->User->Notification->findAllByUserId(1);
+		$notifications = $this->User->Notification->get(array('conditions'=>array('Notification.user_id'=>1)));
 		$this->assertEqual(1, count($notifications));
-		$this->assertTrue(!empty($notifications[0]['Subject']));
+		$this->assertTrue(!empty($notifications[0]['Post']));
+		$this->assertTrue(!empty($notifications[0]['User']));
 		
 		$this->assertTrue($this->User->notify(1, 'post_add', array('User'=>2, 'Post'=>2)));
 
-		$notifications = $this->User->Notification->findAllByUserId(1);
+		$notifications = $this->User->Notification->get(array('conditions'=>array('Notification.user_id'=>1)));
 		$this->assertEqual(2, count($notifications));
-		$this->assertEqual(2, count($notifications[1]['Subject']));
-		$this->assertEqual('Post', $notifications[1]['Subject'][0]['model']);
-		$this->assertEqual(2, $notifications[1]['Subject'][0]['model_id']);
+		$this->assertTrue(!empty($notifications[1]['Post']));
+		$this->assertTrue(!empty($notifications[1]['User']));
 
 	}
 
 	public function testNotifyWithoutUserId(){
 
-		$notifications = $this->User->Notification->findAllByUserId(1);
+		$notifications = $this->User->Notification->get(array('conditions'=>array('Notification.user_id'=>1)));
 		$this->assertEqual(1, count($notifications));
-		$this->assertTrue(!empty($notifications[0]['Subject']));
+		$this->assertTrue(!empty($notifications[0]['Post']));
 		$this->User->id = 1;
 
 		$this->assertTrue($this->User->notify('post_add', array('User'=>2, 'Post'=>2)));
 		
-		$notifications = $this->User->Notification->findAllByUserId(1);
+		$notifications = $this->User->Notification->get(array('conditions'=>array('Notification.user_id'=>1)));
 		$this->assertEqual(2, count($notifications));
-		$this->assertEqual(2, count($notifications[1]['Subject']));
-		$this->assertEqual('Post', $notifications[1]['Subject'][0]['model']);
-		$this->assertEqual(2, $notifications[1]['Subject'][0]['model_id']);
+		$this->assertTrue(!empty($notifications[1]['Post']));
+		$this->assertTrue(!empty($notifications[1]['User']));
 
 	}
 

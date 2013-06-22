@@ -12,7 +12,9 @@ class NotifiableBehavior extends ModelBehavior {
      * 
      * @var array
      */
-    public $default = array();
+    public $default = array(
+        'subjects' => array(),
+    );
 
 
     public function setup(Model $Model, $settings = array()){
@@ -30,6 +32,16 @@ class NotifiableBehavior extends ModelBehavior {
 				)
 			)
 		), false);
+
+        $belongsTo = array();
+        foreach ($this->__settings[$Model->alias]['subjects'] as $subject) {
+            $belongsTo[$subject] = array(
+                'className'  => $subject,
+                'foreignKey' => 'model_id',
+                'conditions' => array('Subject.model' => $subject)
+            );
+        }
+        $Model->Notification->Subject->bindModel(compact('belongsTo'), false);
 
     }
 
@@ -80,12 +92,8 @@ class NotifiableBehavior extends ModelBehavior {
      * 
      */
     public function getUnreadNotification(Model $Model, $user_id = null, $conditions = array()){
-        if(!is_int($user_id)) $user_id = $Model->id;
-
-        $conditions['Notification.user_id'] = $user_id;
-        $conditions['Notification.read']    = false;
-
-        return $Model->Notification->find('all', compact('conditions'));
+        if(empty($user_id)) $user_id = $Model->id;
+        return $Model->Notification->getUnread($user_id);
     }
 
 }

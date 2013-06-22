@@ -48,12 +48,13 @@ class Notification extends NotificationAppModel {
 	 *
 	 * @var array
 	 */
-	public $belongsTo = array(
-		'User' => array(
-			'className' => 'User',
-			'foreignKey' => 'user_id',
-		)
-	);
+	// public $belongsTo = array(
+	// 	'User' => array(
+	// 		'className' => 'User',
+	// 		'foreignKey' => 'user_id',
+	// 	)
+	// );
+
 
 	/**
 	 * hasMany associations
@@ -62,10 +63,33 @@ class Notification extends NotificationAppModel {
 	 */
 	public $hasMany = array(
 		'Subject' => array(
-			'className' => 'Notification.Subject',
+			'className'  => 'Notification.Subject',
 			'foreignKey' => 'notification_id',
-			'dependent' => true,
+			'dependent'  => true,
 		)
 	);
+
+	public function get($options = array()){
+		$notifications = $this->find('all', $options);
+		$ids = Set::classicExtract($notifications, '{n}.Notification.id');
+		$subjects = $this->Subject->findAllByNotificationId($ids);
+		foreach ($notifications as $k => $notification) {
+			$s = Set::extract('/.[notification_id='.$notification['Notification']['id'].']', $subjects);
+			foreach ($s as $t) {
+				$notifications[$k][$t['model']] = $t[$t['model']];
+			}
+		}
+		return $notifications;
+	}
+
+	public function getUnread($user_id, $limit = false){
+		return $this->get(array(
+			'conditions' => array(
+				'Notification.user_id' => $user_id,
+				'Notification.read' => false
+			),
+			'limit' => $limit,
+		));
+	}
 
 }
