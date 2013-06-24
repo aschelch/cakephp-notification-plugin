@@ -63,7 +63,7 @@ class NotifiableBehavior extends ModelBehavior {
             $user_id = $Model->id;
         }
 
-        if(!is_int($user_id)) return false;
+        if(empty($user_id)) return false;
 
         $notification = array(
             'Notification' => array(
@@ -94,6 +94,14 @@ class NotifiableBehavior extends ModelBehavior {
     public function getUnreadNotification(Model $Model, $user_id = null, $conditions = array()){
         if(empty($user_id)) $user_id = $Model->id;
         return $Model->Notification->getUnread($user_id);
+    }
+
+    /**
+     * 
+     * $notifications = $this->User->getLastNotification(1, 5);
+     */
+    public function getLastNotification(Model $Model, $user_id, $limit = 5){
+        return $Model->Notification->getLast($user_id, $limit);
     }
 
 }

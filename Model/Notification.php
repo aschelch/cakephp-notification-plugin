@@ -43,6 +43,8 @@ class Notification extends NotificationAppModel {
 		),
 	);
 
+	public $order = array('Notification.created DESC');
+
 	/**
 	 * belongsTo associations
 	 *
@@ -69,27 +71,44 @@ class Notification extends NotificationAppModel {
 		)
 	);
 
-	public function get($options = array()){
-		$notifications = $this->find('all', $options);
-		$ids = Set::classicExtract($notifications, '{n}.Notification.id');
-		$subjects = $this->Subject->findAllByNotificationId($ids);
-		foreach ($notifications as $k => $notification) {
-			$s = Set::extract('/.[notification_id='.$notification['Notification']['id'].']', $subjects);
-			foreach ($s as $t) {
-				$notifications[$k][$t['model']] = $t[$t['model']];
+	public function afterFind($results, $primary = false){
+		if($primary){
+			$ids = Set::classicExtract($results, '{n}.Notification.id');
+			$subjects = $this->Subject->findAllByNotificationId($ids);
+			foreach ($results as $k => $result) {
+				$s = Set::extract('/.[notification_id='.$result['Notification']['id'].']', $subjects);
+				foreach ($s as $t) {
+					$results[$k][$t['model']] = $t[$t['model']];
+				}
 			}
 		}
-		return $notifications;
+		return $results;
 	}
 
 	public function getUnread($user_id, $limit = false){
-		return $this->get(array(
+		return $this->find('all', array(
 			'conditions' => array(
 				'Notification.user_id' => $user_id,
 				'Notification.read' => false
 			),
 			'limit' => $limit,
 		));
+	}
+
+	public function getLast($user_id, $limit = 5){
+		return $this->find('all', array(
+			'conditions' => array(
+				'Notification.user_id' => $user_id,
+			),
+			'limit' => $limit,
+		));
+	}
+
+	public function markAllAsRead($user_id){
+		return $this->updateAll(
+			array('Notification.read'=>true),
+			array('Notification.user_id'=>$user_id)
+		);
 	}
 
 }

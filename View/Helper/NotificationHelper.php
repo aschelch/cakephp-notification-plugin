@@ -6,8 +6,8 @@ class NotificationHelper extends AppHelper{
 		'Html', 'Time'
 	);
 	
-	public function display($notification){
-		return $this->_View->element('Notification/'.$notification['Notification']['type'], array('data'=>$notification));
+	public function display($notification, $type = false){
+		return $this->_View->element('Notification/'.($type?$type.'/':'').$notification['Notification']['type'], array('data'=>$notification));
 	}
 	
 }
